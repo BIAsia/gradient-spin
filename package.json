@@ -1,0 +1,62 @@
+{
+  "name": "gradient-spin",
+  "version": "0.1.0",
+  "description": "A zero-dependency React matrix loading spinner — a grid of cells swept by a gradient wavefront (arrow, diagonal, snake, ripple). One CSS keyframe, compositor-only, no CSS import.",
+  "type": "module",
+  "packageManager": "pnpm@11.3.0",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup && node scripts/add-use-client.mjs",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "smoke:pack": "node scripts/smoke-pack.mjs",
+    "release:check": "npm run typecheck && npm run smoke:pack && npm pack --dry-run",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run release:check"
+  },
+  "keywords": [
+    "react",
+    "spinner",
+    "loader",
+    "loading",
+    "gradient",
+    "grid",
+    "matrix",
+    "animation",
+    "heatgrid",
+    "css-animation"
+  ],
+  "author": "ziye",
+  "license": "MIT",
+  "homepage": "https://github.com/BIAsia/gradient-spin#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BIAsia/gradient-spin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BIAsia/gradient-spin/issues"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "playwright-core": "^1.61.0",
+    "react": "^19.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.5.0"
+  }
+}

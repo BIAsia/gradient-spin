@@ -1,0 +1,308 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1c1c1e;
+  --muted: #8a8a90;
+  --border: rgba(0, 0, 0, 0.1);
+  --bg-weak: #f5f5f3;
+  --surface: #ffffff;
+  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --ring: #1c1c1e;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0b0d;
+  --fg: #f1f1f4;
+  --muted: #85858d;
+  --border: rgba(255, 255, 255, 0.12);
+  --bg-weak: #161619;
+  --surface: #161619;
+  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ring: #f1f1f4;
+  color-scheme: dark;
+}
+
+:root,
+body {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(120, 120, 120, 0.2);
+}
+
+a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+a:hover {
+  color: var(--fg);
+}
+
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  box-shadow: var(--panel-shadow);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease,
+    border-color 0.14s ease, color 0.14s ease;
+}
+.pill-link:hover {
+  color: var(--fg);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.09);
+}
+.pill-link:active {
+  transform: translateY(0);
+  box-shadow: var(--panel-shadow);
+}
+.pill-link svg {
+  opacity: 0.85;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--bg-weak);
+}
+input[type="range"]::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--bg-weak);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--fg);
+  border: 2px solid var(--bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--fg);
+  border: 2px solid var(--bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- Lenis smooth scroll ---------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---------- Initial hidden states (only once JS will animate) ---------- */
+.motion-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.motion-ready [data-prop-row] {
+  opacity: 0;
+  transform: translateX(-12px);
+}
+/* Nav hides via opacity only — GSAP supplies the entrance transform and clears
+   it on finish, so the CSS hover lift isn't overridden. Swatches are NOT hidden
+   individually; they ride in with their parent [data-hero-item] row, so they can
+   never get stuck hidden (and the CSS hover scale works without any cleanup). */
+.motion-ready [data-nav] .pill-link,
+.motion-ready [data-hero-title],
+.motion-ready [data-code] {
+  opacity: 0;
+}
+.motion-ready [data-hero-item] {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+/* ---------- Swatch hover / press breathing scale ---------- */
+.swatch-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.swatch-name {
+  position: absolute;
+  top: 100%;
+  margin-top: 15px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+}
+.swatch-wrap:hover .swatch-name {
+  opacity: 1;
+  transform: translateY(0);
+}
+.swatch {
+  transition: transform 0.24s cubic-bezier(0.34, 1.4, 0.5, 1), box-shadow 0.2s ease;
+}
+.swatch:hover {
+  transform: scale(1.09);
+}
+.swatch:active {
+  transform: scale(0.92);
+}
+@media (prefers-reduced-motion: reduce) {
+  .swatch {
+    transition: none;
+  }
+  .swatch:hover,
+  .swatch:active {
+    transform: none;
+  }
+}
+/* ---------- Usage code card ---------- */
+.code-card {
+  margin: 0;
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  box-shadow: var(--panel-shadow);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: left;
+  overflow-x: auto;
+  color: var(--fg);
+}
+.code-card .tok-kw {
+  color: #9a86e6;
+}
+.code-card .tok-str {
+  color: #4f9d6d;
+}
+.code-card .tok-punc {
+  color: var(--muted);
+}
+
+/* ---------- Segmented control (sliding indicator) ---------- */
+.seg {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.seg-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  box-shadow: var(--panel-shadow);
+  transition: transform 0.3s cubic-bezier(0.34, 1.3, 0.5, 1), width 0.3s cubic-bezier(0.34, 1.3, 0.5, 1);
+  pointer-events: none;
+}
+.seg-btn {
+  position: relative;
+  z-index: 1;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+.seg-btn[aria-pressed="true"] {
+  color: var(--fg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg-indicator {
+    transition: none;
+  }
+}
+
+/* ---------- Theme toggle ---------- */
+.theme-toggle {
+  padding: 6px;
+  width: 33px;
+  justify-content: center;
+}
+
+/* Internal horizontal scroll without a visible scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- View Transition crossfade ---------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+}
+
+/* ---------- Reduced motion: kill continuous + scripted motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  body {
+    transition: none;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
