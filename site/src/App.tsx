@@ -395,6 +395,21 @@ export function App() {
     setFaviconSpinConfig({ preset: presetId, pattern })
   }, [presetId, pattern])
 
+  // Every config tweak springs the live preview — a quick scale bounce that
+  // punctuates the switch to the new look. Skips the first mount (that is the
+  // section's own reveal) and respects reduced motion.
+  const previewRef = useRef<HTMLSpanElement | null>(null)
+  const previewMounted = useRef(false)
+  useEffect(() => {
+    if (!previewMounted.current) {
+      previewMounted.current = true
+      return
+    }
+    const el = previewRef.current
+    if (!el || prefersReducedMotion()) return
+    gsap.fromTo(el, { scale: 0.82 }, { scale: 1, duration: 0.42, ease: "back.out(2.2)", overwrite: true })
+  }, [presetId, pattern, rows, cols, cellSize, cellGap, period, dim, colorBy])
+
   return (
     <>
       <div ref={scope} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: 100 }}>
@@ -459,7 +474,9 @@ export function App() {
             segmented pattern/axis, and the numeric sliders */}
         <section data-reveal style={{ ...SECTION, gap: 32, padding: "44px 0", alignItems: "stretch" }}>
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 120, borderRadius: 16, background: "var(--surface)", border: "0.5px solid var(--border)", boxShadow: "var(--panel-shadow)" }}>
-            <GradientSpin {...spinProps} label="Configured preview" />
+            <span ref={previewRef} style={{ display: "inline-flex", willChange: "transform" }}>
+              <GradientSpin {...spinProps} label="Configured preview" />
+            </span>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10 }}>
             {PRESET_NAMES.map((name) => (
