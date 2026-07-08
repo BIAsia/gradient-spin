@@ -14,6 +14,7 @@ import {
   type GradientStop,
   type SpinPattern,
 } from "gradient-spin"
+import { setFaviconSpinConfig } from "./favicon-spin"
 import { ThemeToggle } from "./motion/ThemeToggle"
 import { gsap, prefersReducedMotion } from "./motion/gsap"
 import { usePageMotion } from "./motion/usePageMotion"
@@ -316,6 +317,11 @@ export function App() {
 
   // One config object spread into every live instance so they update together.
   const spinProps = { gradient: presetId, pattern, rows, cols, cellSize, cellGap, period, dim, colorBy } as const
+
+  // The favicon wave follows the picked gradient + pattern too.
+  useEffect(() => {
+    setFaviconSpinConfig({ preset: presetId, pattern })
+  }, [presetId, pattern])
 
   return (
     <>
