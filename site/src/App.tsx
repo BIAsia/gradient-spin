@@ -9,6 +9,7 @@ import {
 import {
   GradientSpin,
   gradientPresets,
+  spinPatterns,
   type GradientPresetName,
   type GradientStop,
   type SpinPattern,
@@ -220,6 +221,46 @@ function SliderRow({ label, value, min, max, step, onChange, format }: { label: 
   )
 }
 
+/**
+ * Specimen wall: every preset × pattern combo (8 × 4 = 32) at the component's
+ * DEFAULT size, shuffled once per visit so the wall reads as a random field
+ * while still covering every combination exactly once.
+ */
+function SpinWall() {
+  const [combos] = useState(() => {
+    const all = PRESET_NAMES.flatMap((preset) =>
+      spinPatterns.map((pattern) => ({ preset, pattern }))
+    )
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[all[i], all[j]] = [all[j], all[i]]
+    }
+    return all
+  })
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(8, 1fr)",
+        gap: "30px 34px",
+        justifyItems: "center",
+        alignItems: "center",
+        padding: "6px 0",
+      }}
+    >
+      {combos.map((combo) => (
+        <span key={`${combo.preset}-${combo.pattern}`} title={`${combo.preset} · ${combo.pattern}`}>
+          <GradientSpin
+            gradient={combo.preset}
+            pattern={combo.pattern}
+            label={`${combo.preset} ${combo.pattern}`}
+          />
+        </span>
+      ))}
+    </div>
+  )
+}
+
 /** Skeleton chat bubble for the in-context card. */
 function Bubble({ mine, width }: { mine?: boolean; width: number }) {
   return (
@@ -275,8 +316,6 @@ export function App() {
 
   // One config object spread into every live instance so they update together.
   const spinProps = { gradient: presetId, pattern, rows, cols, cellSize, cellGap, period, dim, colorBy } as const
-  // The hero renders the same config at 4× scale so it reads at display size.
-  const heroScale = 4
 
   return (
     <>
@@ -299,18 +338,10 @@ export function App() {
           </div>
         </nav>
 
-        {/* Hero */}
+        {/* Hero — a specimen wall of every preset × pattern at default size */}
         <section style={{ ...SECTION, gap: 40, padding: "76px 0 56px" }}>
-          <div data-hero-title style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28 }}>
-            <div style={{ minHeight: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <GradientSpin
-                {...spinProps}
-                cellSize={cellSize * heroScale}
-                cellGap={cellGap * heroScale}
-                cellRadius={Math.max(1, Math.round((cellSize * heroScale) / 4))}
-                label="gradient-spin demo"
-              />
-            </div>
+          <div data-hero-title style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 36, width: "100%" }}>
+            <SpinWall />
             <h1 style={{ margin: 0, fontSize: 40, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.25, fontFamily: '"InterVariable", "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif', fontFeatureSettings: '"cv11" 1, "cv05" 1, "ss01" 1' }}>
               gradient-spin
             </h1>
@@ -318,17 +349,21 @@ export function App() {
           <div data-hero-item style={{ width: "100%", maxWidth: 320 }}>
             <InstallCard command={INSTALL} />
           </div>
-          <div data-hero-item style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10 }}>
-            {PRESET_NAMES.map((name) => (
-              <GradientSwatch key={name} name={name} selected={name === presetId} onSelect={() => setPresetId(name)} />
-            ))}
-          </div>
         </section>
 
         <div style={DIVIDER} />
 
-        {/* Controls — segmented pattern/axis first, then the numeric sliders */}
+        {/* Controls — the 1:1 live preview on top, then gradient picker,
+            segmented pattern/axis, and the numeric sliders */}
         <section data-reveal style={{ ...SECTION, gap: 32, padding: "44px 0", alignItems: "stretch" }}>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 120, borderRadius: 16, background: "var(--bg-weak)" }}>
+            <GradientSpin {...spinProps} label="Configured preview" />
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10 }}>
+            {PRESET_NAMES.map((name) => (
+              <GradientSwatch key={name} name={name} selected={name === presetId} onSelect={() => setPresetId(name)} />
+            ))}
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 18, width: "100%" }}>
             <div style={ROW}>
               <span style={ROW_LABEL}>Pattern</span>
