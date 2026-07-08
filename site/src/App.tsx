@@ -398,12 +398,31 @@ export function App() {
   return (
     <>
       <div ref={scope} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: 100 }}>
-        {/* Top links — full-viewport bar with side margins */}
-        <nav data-nav style={{ position: "relative", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "22px 24px 0" }}>
+        {/* Top links — full-viewport bar, pinned to the top and frosted so content scrolls cleanly under it */}
+        <nav
+          data-nav
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 50,
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+            padding: "14px 24px",
+            background: "color-mix(in oklab, var(--bg) 80%, transparent)",
+            backdropFilter: "blur(12px) saturate(1.05)",
+            WebkitBackdropFilter: "blur(12px) saturate(1.05)",
+            borderBottom: "0.5px solid var(--border)",
+          }}
+        >
           <ThemeToggle />
           <span
             aria-hidden
-            style={{ position: "absolute", left: "50%", top: 29, transform: "translateX(-50%)", fontSize: 13, color: "var(--muted)", whiteSpace: "nowrap" }}
+            style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", fontSize: 13, color: "var(--muted)", whiteSpace: "nowrap" }}
           >
             gradient-spin
           </span>
@@ -424,7 +443,8 @@ export function App() {
 
         <div style={{ width: "100%", maxWidth: COLUMN + 48, margin: "0 auto", padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         {/* Hero — a single specimen row, a wavefront sweeping each spinner to the next shape rightward */}
-        <section style={{ ...SECTION, gap: 40, padding: "76px 0 56px" }}>
+        {/* Top pad clears the fixed nav (now out of flow) and keeps the original breathing room below it. */}
+        <section style={{ ...SECTION, gap: 40, padding: "120px 0 56px" }}>
           <div data-hero-title style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
             <SpinWall />
           </div>
