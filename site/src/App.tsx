@@ -224,34 +224,53 @@ function SliderRow({ label, value, min, max, step, onChange, format }: { label: 
 }
 
 /**
- * Wall choreography states — the wave sweep cycles every tile through these
- * configs (grid shape, cell geometry, tempo). Tallest/widest entries still fit
- * the fixed 16px tracks + 60/68px gaps, so the wall never reflows the page.
+ * Geometry "types" the row cycles through — grid shape, cell size, tempo. The
+ * smallest specimens are sized up (min cellSize 3) so every shape stays legible
+ * at hero scale; widest/tallest still clear TILE_BOX + TILE_GAP without reflow.
  */
 const WALL_STATES = [
-  { rows: 3, cols: 3, cellSize: 4, cellGap: 2, period: 750 },
-  { rows: 4, cols: 4, cellSize: 2, cellGap: 1, period: 950 },
-  { rows: 3, cols: 7, cellSize: 3, cellGap: 2, period: 750 },
-  { rows: 5, cols: 5, cellSize: 2, cellGap: 1, period: 900 },
+  { rows: 3, cols: 3, cellSize: 6, cellGap: 3, period: 750 },
+  { rows: 4, cols: 4, cellSize: 4, cellGap: 2, period: 950 },
+  { rows: 3, cols: 7, cellSize: 4, cellGap: 2, period: 750 },
+  { rows: 5, cols: 5, cellSize: 3, cellGap: 2, period: 900 },
   { rows: 2, cols: 9, cellSize: 4, cellGap: 2, period: 800 },
 ]
-const SWEEP_STEP_MS = 90
-const SWEEP_HOLD_MS = 4000
-const WALL_COLS = 8
+
+const ROW_TILES = 7 // specimens visible in the single row
+const TILE_BOX = 48 // fixed cell — row height never reflows; spinners overflow into the gap
+const TILE_GAP = 14
+const STEP_MS = 150 // one tile flips to the next state per step; the wavefront crosses left→right
 
 type WallState = (typeof WALL_STATES)[number]
 
-const WallTile = memo(function WallTile({
+const RowTile = memo(function RowTile({
   preset,
   pattern,
-  state,
+  stateIndex,
 }: {
   preset: GradientPresetName
   pattern: SpinPattern
-  state: WallState
+  stateIndex: number
 }) {
+  const ref = useRef<HTMLSpanElement | null>(null)
+  const state: WallState = WALL_STATES[stateIndex]
+  // Soft "pop" as the wavefront hands this tile its next shape — reads as the
+  // wave washing across the row rather than a hard swap. Mount also pops.
+  useEffect(() => {
+    const el = ref.current
+    if (!el || prefersReducedMotion()) return
+    gsap.fromTo(
+      el,
+      { scale: 0.68, opacity: 0.25 },
+      { scale: 1, opacity: 1, duration: 0.36, ease: "power3.out" }
+    )
+  }, [stateIndex])
   return (
-    <span title={`${preset} · ${pattern}`}>
+    <span
+      ref={ref}
+      title={`${preset} · ${pattern}`}
+      style={{ display: "grid", placeItems: "center", width: TILE_BOX, height: TILE_BOX }}
+    >
       <GradientSpin
         gradient={preset}
         pattern={pattern}
@@ -267,10 +286,13 @@ const WallTile = memo(function WallTile({
 })
 
 /**
- * Specimen wall: every preset × pattern combo (8 × 4 = 32), shuffled once per
- * visit. A "wave sweep" then rolls a new config across the wall along the
- * diagonal (row+col order, 90ms per step — a wavefront of wavefronts), holds
- * 4s, and sweeps to the next state in the cycle. Reduced motion pins state 0.
+ * Specimen row: a single line of ROW_TILES spinners, each pinned to a preset ×
+ * pattern combo. A wavefront advances one tile per step, flipping each to the
+ * next geometry state left→right; the instant it clears the right end the next
+ * state is already entering the left — a seamless rightward loop through every
+ * shape. `front` counts steps; tile i adopted its state floor((front-i)/N)
+ * rounds ago, so neighbours differ by at most one state (the sweep boundary).
+ * Reduced motion holds a static row.
  */
 function SpinWall() {
   const [combos] = useState(() => {
@@ -281,55 +303,37 @@ function SpinWall() {
       const j = Math.floor(Math.random() * (i + 1))
       ;[all[i], all[j]] = [all[j], all[i]]
     }
-    return all
+    return all.slice(0, ROW_TILES)
   })
-  const [tileState, setTileState] = useState<number[]>(() => combos.map(() => 0))
+  const [front, setFront] = useState(ROW_TILES * WALL_STATES.length * 8)
   useEffect(() => {
     if (prefersReducedMotion()) return
-    let stateIndex = 0
-    const timeouts = new Set<number>()
-    const interval = window.setInterval(() => {
-      stateIndex = (stateIndex + 1) % WALL_STATES.length
-      const next = stateIndex
-      for (let i = 0; i < combos.length; i++) {
-        const diag = Math.floor(i / WALL_COLS) + (i % WALL_COLS)
-        const handle = window.setTimeout(() => {
-          timeouts.delete(handle)
-          setTileState((prev) => {
-            const copy = [...prev]
-            copy[i] = next
-            return copy
-          })
-        }, diag * SWEEP_STEP_MS)
-        timeouts.add(handle)
-      }
-    }, SWEEP_HOLD_MS)
-    return () => {
-      window.clearInterval(interval)
-      for (const handle of timeouts) window.clearTimeout(handle)
-    }
-  }, [combos])
+    const id = window.setInterval(() => setFront((f) => f + 1), STEP_MS)
+    return () => window.clearInterval(id)
+  }, [])
+  const ns = WALL_STATES.length
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${WALL_COLS}, 16px)`,
-        gridAutoRows: "16px",
-        gap: "60px 68px",
-        justifyItems: "center",
+        display: "flex",
+        gap: TILE_GAP,
+        justifyContent: "center",
         alignItems: "center",
-        padding: "6px 0",
         width: "max-content",
+        margin: "0 auto",
       }}
     >
-      {combos.map((combo, index) => (
-        <WallTile
-          key={`${combo.preset}-${combo.pattern}`}
-          preset={combo.preset}
-          pattern={combo.pattern}
-          state={WALL_STATES[tileState[index]]}
-        />
-      ))}
+      {combos.map((combo, i) => {
+        const stateIndex = ((Math.floor((front - i) / ROW_TILES) % ns) + ns) % ns
+        return (
+          <RowTile
+            key={`${combo.preset}-${combo.pattern}`}
+            preset={combo.preset}
+            pattern={combo.pattern}
+            stateIndex={stateIndex}
+          />
+        )
+      })}
     </div>
   )
 }
@@ -423,7 +427,7 @@ export function App() {
         </nav>
 
         <div style={{ width: "100%", maxWidth: COLUMN + 48, margin: "0 auto", padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        {/* Hero — a specimen wall of every preset × pattern, wave-swept through configs */}
+        {/* Hero — a single specimen row, a wavefront sweeping each spinner to the next shape rightward */}
         <section style={{ ...SECTION, gap: 40, padding: "76px 0 56px" }}>
           <div data-hero-title style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
             <SpinWall />
