@@ -85,9 +85,11 @@ form the wavefront, and a cell's animation delay is `-(d / (max + 1)) ×
 period`:
 
 - **arrow-up** — chevron fold across the center column: `(rows−1−row) + |col−center|`
-- **diagonal** — `row + col`
-- **snake** — boustrophedon index from the bottom-left
 - **ripple** — Chebyshev distance from the center (expanding square rings)
+- **diagonal** & **snake** — travel patterns (anti-diagonal `row + col`;
+  boustrophedon path from the bottom-left). Their distance is tiled into
+  repeating bands (`d % SCROLL_BAND`) so the wave scrolls seamlessly and loops
+  without teleporting from one corner back to the other.
 
 ## Development
 
