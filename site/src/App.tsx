@@ -242,11 +242,12 @@ function SpinWall() {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(8, 1fr)",
-        gap: "30px 34px",
+        gridTemplateColumns: "repeat(8, 16px)",
+        gap: "60px 68px",
         justifyItems: "center",
         alignItems: "center",
         padding: "6px 0",
+        width: "max-content",
       }}
     >
       {combos.map((combo) => (
@@ -327,8 +328,14 @@ export function App() {
     <>
       <div ref={scope} style={{ width: "100%", maxWidth: COLUMN + 48, margin: "0 auto", padding: "0 24px 100px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         {/* Top links */}
-        <nav data-nav style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "22px 0 0" }}>
+        <nav data-nav style={{ position: "relative", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "22px 0 0" }}>
           <ThemeToggle />
+          <span
+            aria-hidden
+            style={{ position: "absolute", left: "50%", top: 29, transform: "translateX(-50%)", fontSize: 13, color: "var(--muted)", whiteSpace: "nowrap" }}
+          >
+            gradient-spin
+          </span>
           <div style={{ display: "flex", gap: 8 }}>
             <a className="pill-link" href="https://github.com/BIAsia/gradient-spin">
               <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
@@ -346,11 +353,8 @@ export function App() {
 
         {/* Hero — a specimen wall of every preset × pattern at default size */}
         <section style={{ ...SECTION, gap: 40, padding: "76px 0 56px" }}>
-          <div data-hero-title style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 36, width: "100%" }}>
+          <div data-hero-title style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
             <SpinWall />
-            <h1 style={{ margin: 0, fontSize: 40, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.25, fontFamily: '"InterVariable", "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif', fontFeatureSettings: '"cv11" 1, "cv05" 1, "ss01" 1' }}>
-              gradient-spin
-            </h1>
           </div>
           <div data-hero-item style={{ width: "100%", maxWidth: 320 }}>
             <InstallCard command={INSTALL} />
@@ -362,7 +366,7 @@ export function App() {
         {/* Controls — the 1:1 live preview on top, then gradient picker,
             segmented pattern/axis, and the numeric sliders */}
         <section data-reveal style={{ ...SECTION, gap: 32, padding: "44px 0", alignItems: "stretch" }}>
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 120, borderRadius: 16, background: "var(--bg-weak)" }}>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 120, borderRadius: 16, background: "var(--surface)", border: "0.5px solid var(--border)", boxShadow: "var(--panel-shadow)" }}>
             <GradientSpin {...spinProps} label="Configured preview" />
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10 }}>
