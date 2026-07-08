@@ -19,10 +19,9 @@ gradient sampled in OKLab.
 - **Steady-state mount.** Negative delays mean the loop is already mid-flight
   on first paint: no fill-in ramp.
 - **Gradient-true cells.** Colors are sampled from the gradient in **OKLab**
-  (straight sRGB lerp detours through gray), with a minimum-chroma rescue so
-  near-neutral stops never render as dirty gray squares. Every cell gets a
-  unique sample point along the wave path, so the full ramp is always visible
-  — even on a 3×3.
+  (straight sRGB lerp detours through gray). Map it top→bottom like a
+  backdrop (`colorBy="row"`, the default) or give every cell a unique sample
+  along the wave path (`colorBy="path"`).
 - **No CSS import.** Styles are injected once at runtime (`useInsertionEffect`,
   id-deduped). No Tailwind, no setup, zero runtime dependencies.
 - **Accessible.** `role="status"` + `aria-label`; freezes to a static
@@ -68,8 +67,8 @@ import { GradientSpin } from "gradient-spin"
 | `cellGap`              | `number` (px)                               | `2`          |
 | `cellRadius`           | `number` (px)                               | `1`          |
 | `period`               | `number` (ms per sweep)                     | `750`        |
-| `dim`                  | `number` (0..1 resting opacity)             | `0`          |
-| `colorBy`              | `"path" \| "row"`                           | `"path"`     |
+| `dim`                  | `number` (0..1 resting opacity)             | `0.1`        |
+| `colorBy`              | `"path" \| "row"`                           | `"row"`      |
 | `label`                | `string` (aria-label)                       | `"Loading"`  |
 | `respectReducedMotion` | `boolean`                                   | `true`       |
 

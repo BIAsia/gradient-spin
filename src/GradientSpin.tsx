@@ -22,12 +22,12 @@ const STYLE_ID = "gradient-spin-styles"
 
 const STYLE_TEXT = `@keyframes gradient-spin-pulse {
   0% { opacity: 1; }
-  45% { opacity: var(--gspin-dim, 0); }
-  92% { opacity: var(--gspin-dim, 0); }
+  45% { opacity: var(--gspin-dim, 0.1); }
+  92% { opacity: var(--gspin-dim, 0.1); }
   100% { opacity: 1; }
 }
 .gradient-spin-cell {
-  opacity: var(--gspin-dim, 0);
+  opacity: var(--gspin-dim, 0.1);
   animation: gradient-spin-pulse var(--gspin-period, 750ms) linear infinite;
   animation-delay: calc((var(--gspin-phase, 0) - 1) * var(--gspin-period, 750ms));
 }
@@ -64,8 +64,8 @@ export function GradientSpin({
   cellGap = 2,
   cellRadius = 1,
   period = 750,
-  dim = 0,
-  colorBy = "path",
+  dim = 0.1,
+  colorBy = "row",
   label = "Loading",
   respectReducedMotion = true,
   className,

@@ -52,17 +52,8 @@ function oklabToRgbString({ l, a, b }: Oklab): string {
 }
 
 /**
- * Grid cells are discrete color chips, so a near-neutral sample (e.g. the
- * sunrise preset's gray band, invisible inside a smooth backdrop gradient)
- * reads as a jarring "dirty" square. Samples below this chroma are pushed
- * back out along their own hue; genuinely dark/saturated stops are untouched.
- */
-const MIN_CELL_CHROMA = 0.05
-
-/**
  * Sample a color at `t` (0..1) from gradient stops. Interpolates in OKLab —
- * straight sRGB lerp detours through desaturated gray between hue families —
- * then applies the minimum-chroma rescue above.
+ * straight sRGB lerp detours through desaturated gray between hue families.
  */
 export function sampleGradient(stops: readonly GradientStop[], t: number): string {
   if (stops.length === 0) return "currentColor"
@@ -81,16 +72,9 @@ export function sampleGradient(stops: readonly GradientStop[], t: number): strin
   const mix = span === 0 ? 0 : (clamped - lower.position) / span
   const from = hexToOklab(lower.color)
   const to = hexToOklab(upper.color)
-  const sample: Oklab = {
+  return oklabToRgbString({
     l: from.l + (to.l - from.l) * mix,
     a: from.a + (to.a - from.a) * mix,
     b: from.b + (to.b - from.b) * mix,
-  }
-  const chroma = Math.sqrt(sample.a * sample.a + sample.b * sample.b)
-  if (chroma > 0 && chroma < MIN_CELL_CHROMA) {
-    const boost = MIN_CELL_CHROMA / chroma
-    sample.a *= boost
-    sample.b *= boost
-  }
-  return oklabToRgbString(sample)
+  })
 }

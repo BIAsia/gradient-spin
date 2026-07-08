@@ -290,8 +290,8 @@ const PROPS: Array<[string, string, string]> = [
   ["cellGap", "number (px)", "2"],
   ["cellRadius", "number (px)", "1"],
   ["period", "number (ms)", "750"],
-  ["dim", "number (0..1)", "0"],
-  ["colorBy", "path | row", '"path"'],
+  ["dim", "number (0..1)", "0.1"],
+  ["colorBy", "path | row", '"row"'],
 ]
 
 const SECTION: CSSProperties = { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, width: "100%" }
@@ -303,9 +303,9 @@ const ROW_LABEL: CSSProperties = { fontSize: 13, fontWeight: 400, color: "var(--
 export function App() {
   const [presetId, setPresetId] = useState<GradientPresetName>("sunrise")
   const [pattern, setPattern] = useState<SpinPattern>("arrow-up")
-  const [colorBy, setColorBy] = useState<"path" | "row">("path")
+  const [colorBy, setColorBy] = useState<"path" | "row">("row")
   const [period, setPeriod] = useState(750)
-  const [dim, setDim] = useState(0)
+  const [dim, setDim] = useState(0.1)
   const [rows, setRows] = useState(3)
   const [cols, setCols] = useState(3)
   const [cellSize, setCellSize] = useState(4)

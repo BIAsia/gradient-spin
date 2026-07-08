@@ -42,12 +42,12 @@ export interface GradientSpinProps extends HTMLAttributes<HTMLSpanElement> {
   cellRadius?: number
   /** One full wave sweep in ms. Defaults to `750`. */
   period?: number
-  /** Resting opacity of unlit cells, 0..1. Defaults to `0` (fully hidden). */
+  /** Resting opacity of unlit cells, 0..1. Defaults to `0.1`. */
   dim?: number
   /**
-   * How the gradient maps onto cells: `"path"` walks the ramp along the wave's
-   * travel order (every cell gets a unique sample), `"row"` maps it top→bottom
-   * like a backdrop. Defaults to `"path"`.
+   * How the gradient maps onto cells: `"row"` maps it top→bottom like a
+   * backdrop, `"path"` walks the ramp along the wave's travel order (every
+   * cell gets a unique sample). Defaults to `"row"`.
    */
   colorBy?: "path" | "row"
   /** Accessible label for the spinner. Defaults to `"Loading"`. */

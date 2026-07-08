@@ -37,24 +37,21 @@ function rebuildCells() {
       seeds.push({ row, col, ...cellWaveOrder(config.pattern, row, col, 3, 3) })
     }
   }
-  const ordered = [...seeds].sort((a, b) => a.d - b.d || a.row - b.row || a.col - b.col)
-  const rank = new Map<string, number>()
-  ordered.forEach((seed, index) => {
-    rank.set(`${seed.row}-${seed.col}`, index)
-  })
+  // Colors follow the library default: top→bottom row mapping.
   cells = seeds.map((seed) => ({
     row: seed.row,
     col: seed.col,
     phase: seed.max === 0 ? 0 : seed.d / (seed.max + 1),
-    color: sampleGradient(stops, (rank.get(`${seed.row}-${seed.col}`) ?? 0) / 8),
+    color: sampleGradient(stops, seed.row / 2),
   }))
 }
 
-/** The library keyframe curve: 0%→1, 45%→dim, 92%→dim, 100%→1 (dim = 0). */
+/** The library keyframe curve: 0%→1, 45%→dim, 92%→dim, 100%→1 (dim = 0.1). */
+const DIM = 0.1
 function opacityAt(local: number) {
-  if (local <= 0.45) return 1 - local / 0.45
-  if (local <= 0.92) return 0
-  return (local - 0.92) / 0.08
+  if (local <= 0.45) return 1 - (local / 0.45) * (1 - DIM)
+  if (local <= 0.92) return DIM
+  return DIM + ((local - 0.92) / 0.08) * (1 - DIM)
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, r: number) {
