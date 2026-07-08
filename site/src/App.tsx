@@ -224,21 +224,21 @@ function SliderRow({ label, value, min, max, step, onChange, format }: { label: 
 }
 
 /**
- * Geometry "types" the row cycles through — grid shape, cell size, tempo. The
- * smallest specimens are sized up (min cellSize 3) so every shape stays legible
- * at hero scale; widest/tallest still clear TILE_BOX + TILE_GAP without reflow.
+ * Geometry "types" the row cycles through — grid shape, cell size, tempo.
+ * Sizes are balanced by cell geometry (not transform scale) so every shape
+ * reads at a similar footprint; each fits within TILE_BOX so nothing reflows.
  */
 const WALL_STATES = [
-  { rows: 3, cols: 3, cellSize: 6, cellGap: 3, period: 750 },
+  { rows: 3, cols: 3, cellSize: 4, cellGap: 3, period: 750 },
   { rows: 4, cols: 4, cellSize: 4, cellGap: 2, period: 950 },
   { rows: 3, cols: 7, cellSize: 4, cellGap: 2, period: 750 },
   { rows: 5, cols: 5, cellSize: 3, cellGap: 2, period: 900 },
   { rows: 2, cols: 9, cellSize: 4, cellGap: 2, period: 800 },
 ]
 
-const ROW_TILES = 7 // specimens visible in the single row
-const TILE_BOX = 48 // fixed cell — row height never reflows; spinners overflow into the gap
-const TILE_GAP = 14
+const ROW_TILES = 6 // specimens visible in the single row
+const TILE_BOX = 52 // fixed cell — row height never reflows; matches the widest specimen
+const TILE_GAP = 26 // breathing room between specimens
 const STEP_MS = 150 // one tile flips to the next state per step; the wavefront crosses left→right
 
 type WallState = (typeof WALL_STATES)[number]
@@ -254,16 +254,12 @@ const RowTile = memo(function RowTile({
 }) {
   const ref = useRef<HTMLSpanElement | null>(null)
   const state: WallState = WALL_STATES[stateIndex]
-  // Soft "pop" as the wavefront hands this tile its next shape — reads as the
-  // wave washing across the row rather than a hard swap. Mount also pops.
+  // Soft opacity fade as the wavefront hands this tile its next shape — no
+  // transform/scale, so the specimen size stays exactly as its geometry sets it.
   useEffect(() => {
     const el = ref.current
     if (!el || prefersReducedMotion()) return
-    gsap.fromTo(
-      el,
-      { scale: 0.68, opacity: 0.25 },
-      { scale: 1, opacity: 1, duration: 0.36, ease: "power3.out" }
-    )
+    gsap.fromTo(el, { opacity: 0.35 }, { opacity: 1, duration: 0.3, ease: "power2.out" })
   }, [stateIndex])
   return (
     <span
