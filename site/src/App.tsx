@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  memo,
   type ReactNode,
   useEffect,
   useLayoutEffect,
@@ -223,9 +224,53 @@ function SliderRow({ label, value, min, max, step, onChange, format }: { label: 
 }
 
 /**
- * Specimen wall: every preset × pattern combo (8 × 4 = 32) at the component's
- * DEFAULT size, shuffled once per visit so the wall reads as a random field
- * while still covering every combination exactly once.
+ * Wall choreography states — the wave sweep cycles every tile through these
+ * configs (grid shape, cell geometry, tempo). Tallest/widest entries still fit
+ * the fixed 16px tracks + 60/68px gaps, so the wall never reflows the page.
+ */
+const WALL_STATES = [
+  { rows: 3, cols: 3, cellSize: 4, cellGap: 2, period: 750 },
+  { rows: 4, cols: 4, cellSize: 2, cellGap: 1, period: 950 },
+  { rows: 3, cols: 7, cellSize: 3, cellGap: 2, period: 750 },
+  { rows: 5, cols: 5, cellSize: 2, cellGap: 1, period: 900 },
+  { rows: 2, cols: 9, cellSize: 4, cellGap: 2, period: 800 },
+]
+const SWEEP_STEP_MS = 90
+const SWEEP_HOLD_MS = 4000
+const WALL_COLS = 8
+
+type WallState = (typeof WALL_STATES)[number]
+
+const WallTile = memo(function WallTile({
+  preset,
+  pattern,
+  state,
+}: {
+  preset: GradientPresetName
+  pattern: SpinPattern
+  state: WallState
+}) {
+  return (
+    <span title={`${preset} · ${pattern}`}>
+      <GradientSpin
+        gradient={preset}
+        pattern={pattern}
+        label={`${preset} ${pattern}`}
+        rows={state.rows}
+        cols={state.cols}
+        cellSize={state.cellSize}
+        cellGap={state.cellGap}
+        period={state.period}
+      />
+    </span>
+  )
+})
+
+/**
+ * Specimen wall: every preset × pattern combo (8 × 4 = 32), shuffled once per
+ * visit. A "wave sweep" then rolls a new config across the wall along the
+ * diagonal (row+col order, 90ms per step — a wavefront of wavefronts), holds
+ * 4s, and sweeps to the next state in the cycle. Reduced motion pins state 0.
  */
 function SpinWall() {
   const [combos] = useState(() => {
@@ -238,11 +283,37 @@ function SpinWall() {
     }
     return all
   })
+  const [tileState, setTileState] = useState<number[]>(() => combos.map(() => 0))
+  useEffect(() => {
+    if (prefersReducedMotion()) return
+    let stateIndex = 0
+    const timeouts = new Set<number>()
+    const interval = window.setInterval(() => {
+      stateIndex = (stateIndex + 1) % WALL_STATES.length
+      const next = stateIndex
+      for (let i = 0; i < combos.length; i++) {
+        const diag = Math.floor(i / WALL_COLS) + (i % WALL_COLS)
+        const handle = window.setTimeout(() => {
+          timeouts.delete(handle)
+          setTileState((prev) => {
+            const copy = [...prev]
+            copy[i] = next
+            return copy
+          })
+        }, diag * SWEEP_STEP_MS)
+        timeouts.add(handle)
+      }
+    }, SWEEP_HOLD_MS)
+    return () => {
+      window.clearInterval(interval)
+      for (const handle of timeouts) window.clearTimeout(handle)
+    }
+  }, [combos])
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(8, 16px)",
+        gridTemplateColumns: `repeat(${WALL_COLS}, 16px)`,
         gap: "60px 68px",
         justifyItems: "center",
         alignItems: "center",
@@ -250,14 +321,13 @@ function SpinWall() {
         width: "max-content",
       }}
     >
-      {combos.map((combo) => (
-        <span key={`${combo.preset}-${combo.pattern}`} title={`${combo.preset} · ${combo.pattern}`}>
-          <GradientSpin
-            gradient={combo.preset}
-            pattern={combo.pattern}
-            label={`${combo.preset} ${combo.pattern}`}
-          />
-        </span>
+      {combos.map((combo, index) => (
+        <WallTile
+          key={`${combo.preset}-${combo.pattern}`}
+          preset={combo.preset}
+          pattern={combo.pattern}
+          state={WALL_STATES[tileState[index]]}
+        />
       ))}
     </div>
   )
@@ -326,9 +396,9 @@ export function App() {
 
   return (
     <>
-      <div ref={scope} style={{ width: "100%", maxWidth: COLUMN + 48, margin: "0 auto", padding: "0 24px 100px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        {/* Top links */}
-        <nav data-nav style={{ position: "relative", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "22px 0 0" }}>
+      <div ref={scope} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: 100 }}>
+        {/* Top links — full-viewport bar with side margins */}
+        <nav data-nav style={{ position: "relative", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "22px 24px 0" }}>
           <ThemeToggle />
           <span
             aria-hidden
@@ -351,12 +421,13 @@ export function App() {
           </div>
         </nav>
 
-        {/* Hero — a specimen wall of every preset × pattern at default size */}
+        <div style={{ width: "100%", maxWidth: COLUMN + 48, margin: "0 auto", padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        {/* Hero — a specimen wall of every preset × pattern, wave-swept through configs */}
         <section style={{ ...SECTION, gap: 40, padding: "76px 0 56px" }}>
           <div data-hero-title style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
             <SpinWall />
           </div>
-          <div data-hero-item style={{ width: "100%", maxWidth: 320 }}>
+          <div data-hero-item style={{ width: "100%", maxWidth: 320, marginTop: 32 }}>
             <InstallCard command={INSTALL} />
           </div>
         </section>
@@ -464,6 +535,7 @@ export function App() {
             by <a href="https://x.com/mona_biasia">@mona_biasia</a>
           </span>
         </footer>
+        </div>
       </div>
     </>
   )
