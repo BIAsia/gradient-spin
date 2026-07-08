@@ -314,6 +314,7 @@ function SpinWall() {
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${WALL_COLS}, 16px)`,
+        gridAutoRows: "16px",
         gap: "60px 68px",
         justifyItems: "center",
         alignItems: "center",

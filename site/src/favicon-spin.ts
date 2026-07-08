@@ -26,7 +26,7 @@ const GAP = 8 * SCALE
 const RADIUS = 4 * SCALE
 const OFFSET = (SIZE - (CELL * 3 + GAP * 2)) / 2
 const PERIOD_MS = 750
-const FRAME_MS = 125
+const FRAME_MS = 50
 
 type FaviconConfig = { preset: GradientPresetName; pattern: SpinPattern }
 
@@ -82,21 +82,49 @@ export function startFaviconSpin() {
   canvas.height = SIZE
   const ctx = canvas.getContext("2d")
   if (!ctx) return
+  // The static link declares image/svg+xml; once we start feeding PNG data
+  // URIs a stale type makes browsers re-sniff (visible as a flicker).
+  link.type = "image/png"
   rebuildCells()
-  const start = performance.now()
-  setInterval(() => {
-    const t = ((performance.now() - start) / PERIOD_MS) % 1
+
+  const drawFrame = (alphaFor: (cell: (typeof cells)[number]) => number) => {
     ctx.clearRect(0, 0, SIZE, SIZE)
     for (const cell of cells) {
-      // negative-delay equivalent: cell progress = t + (1 - phase)
-      const local = (t + 1 - cell.phase) % 1
-      const alpha = opacityAt(local)
+      const alpha = alphaFor(cell)
       if (alpha <= 0.01) continue
       ctx.globalAlpha = alpha
       ctx.fillStyle = cell.color
       roundRect(ctx, OFFSET + cell.col * (CELL + GAP), OFFSET + cell.row * (CELL + GAP), CELL, RADIUS)
     }
     ctx.globalAlpha = 1
-    link.href = canvas.toDataURL("image/png")
-  }, FRAME_MS)
+    const next = canvas.toDataURL("image/png")
+    if (next !== link.href) link.href = next
+  }
+
+  const start = performance.now()
+  let timer: number | null = null
+  const tick = () => {
+    const t = ((performance.now() - start) / PERIOD_MS) % 1
+    // negative-delay equivalent: cell progress = t + (1 - phase)
+    drawFrame((cell) => opacityAt((t + 1 - cell.phase) % 1))
+  }
+  const play = () => {
+    if (timer === null) timer = window.setInterval(tick, FRAME_MS)
+  }
+  const pause = () => {
+    if (timer !== null) {
+      window.clearInterval(timer)
+      timer = null
+    }
+    // Background-tab timers are throttled to ~1Hz, which reads as random
+    // blinking exactly where favicons matter most — park on a clean static
+    // full-brightness frame instead and resume when the tab is visible.
+    drawFrame(() => 1)
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) pause()
+    else play()
+  })
+  if (document.hidden) pause()
+  else play()
 }
