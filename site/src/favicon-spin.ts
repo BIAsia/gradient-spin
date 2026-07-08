@@ -18,9 +18,13 @@ import {
  */
 
 const SIZE = 64
-const CELL = 16
-const GAP = 8
-const RADIUS = 4
+// Grid drawn at 0.6 of the canvas, centered — full-bleed read too heavy in
+// the tab strip next to text-based favicons.
+const SCALE = 0.6
+const CELL = 16 * SCALE
+const GAP = 8 * SCALE
+const RADIUS = 4 * SCALE
+const OFFSET = (SIZE - (CELL * 3 + GAP * 2)) / 2
 const PERIOD_MS = 750
 const FRAME_MS = 125
 
@@ -90,7 +94,7 @@ export function startFaviconSpin() {
       if (alpha <= 0.01) continue
       ctx.globalAlpha = alpha
       ctx.fillStyle = cell.color
-      roundRect(ctx, cell.col * (CELL + GAP), cell.row * (CELL + GAP), CELL, RADIUS)
+      roundRect(ctx, OFFSET + cell.col * (CELL + GAP), OFFSET + cell.row * (CELL + GAP), CELL, RADIUS)
     }
     ctx.globalAlpha = 1
     link.href = canvas.toDataURL("image/png")
